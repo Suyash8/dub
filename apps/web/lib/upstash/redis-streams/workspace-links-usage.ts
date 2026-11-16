@@ -1,4 +1,4 @@
-import { conn } from "@/lib/planetscale";
+import { prisma } from "@/lib/prisma";
 import { redis } from "../redis";
 import { RedisStream } from "./client";
 
@@ -33,9 +33,12 @@ export const publishWorkspaceLinksUsageEvent = async (
       error,
     );
     // fallback on writing directly to the database
-    return await conn.execute(
-      "UPDATE Project SET linksUsage = linksUsage + ?, totalLinks = totalLinks + ? WHERE id = ?",
-      [linksCount, linksCount, workspaceId],
-    );
+    return await prisma.project.update({
+      where: { id: workspaceId },
+      data: {
+        linksUsage: { increment: linksCount },
+        totalLinks: { increment: linksCount },
+      },
+    });
   }
 };

@@ -35,5 +35,4 @@ model Customer {
   @@index([projectId, subscriptionCanceledAt])
   @@index(linkId)
   @@index(country)
-  @@fulltext([email, name]) // For full-text search
 }

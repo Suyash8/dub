@@ -1,5 +1,5 @@
 import { logger, toErrorFields } from "@/lib/axiom/server";
-import { conn } from "@/lib/planetscale";
+import { prisma } from "@/lib/prisma";
 import { redis } from "../redis";
 import { RedisStream } from "./client";
 
@@ -41,16 +41,22 @@ export const publishLinkClickEvent = async ({
     });
 
     return await Promise.allSettled([
-      conn.execute(
-        "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-        [linkId],
-      ),
+      prisma.link.update({
+        where: { id: linkId },
+        data: {
+          clicks: { increment: 1 },
+          lastClicked: new Date(),
+        },
+      }),
 
       workspaceId
-        ? conn.execute(
-            "UPDATE Project p SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE id = ?",
-            [workspaceId],
-          )
+        ? prisma.project.update({
+            where: { id: workspaceId },
+            data: {
+              usage: { increment: 1 },
+              totalClicks: { increment: 1 },
+            },
+          })
         : null,
 
       logger.flush(),

@@ -14,10 +14,6 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {},
 }));
 
-vi.mock("@/lib/planetscale", () => ({
-  conn: { execute: vi.fn() },
-}));
-
 const buildPipeMock = vi.mocked(tb.buildPipe);
 
 function mockPipeError(error: Error) {

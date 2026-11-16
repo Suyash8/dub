@@ -5,7 +5,6 @@ import { FolderAccessLevel } from "@/lib/types";
 import { linkConstructor, punyEncode } from "@dub/utils";
 import * as z from "zod/v4";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
-import { conn } from "../planetscale";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
 import {
@@ -62,20 +61,36 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       (filter) => !params[filter as keyof AnalyticsFilters],
     )
   ) {
-    const linkIdPlaceholders = normalizedLinkId.values.map(() => "?").join(",");
-    const aggregateColumns =
-      event === "composite"
-        ? `SUM(clicks) as clicks, SUM(leads) as leads, SUM(sales) as sales, SUM(saleAmount) as saleAmount`
-        : event === "sales"
-          ? `SUM(sales) as sales, SUM(saleAmount) as saleAmount`
-          : `SUM(${event}) as ${event}`;
+    const { _sum } = await prisma.link.aggregate({
+      where: {
+        id: { in: normalizedLinkId.values },
+        projectId: workspaceId,
+      },
+      _sum: {
+        ...(event === "composite" || event === "clicks"
+          ? { clicks: true }
+          : {}),
+        ...(event === "composite" || event === "leads" ? { leads: true } : {}),
+        ...(event === "composite" || event === "sales"
+          ? { sales: true, saleAmount: true }
+          : {}),
+      },
+    });
 
-    const response = await conn.execute(
-      `SELECT ${aggregateColumns} FROM Link WHERE id IN (${linkIdPlaceholders}) AND projectId = ?`,
-      [...normalizedLinkId.values, workspaceId],
-    );
-
-    return analyticsResponse["count"].parse(response.rows[0]);
+    return analyticsResponse["count"].parse({
+      ...(event === "composite" || event === "clicks"
+        ? { clicks: _sum.clicks ?? 0 }
+        : {}),
+      ...(event === "composite" || event === "leads"
+        ? { leads: _sum.leads ?? 0 }
+        : {}),
+      ...(event === "composite" || event === "sales"
+        ? {
+            sales: _sum.sales ?? 0,
+            saleAmount: Number(_sum.saleAmount ?? 0),
+          }
+        : {}),
+    });
   }
 
   if (groupBy === "trigger") groupBy = "triggers";

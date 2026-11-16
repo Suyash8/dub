@@ -30,8 +30,8 @@ model Invoice {
   receiptUrl           String?        @db.Text
   refundReason         String?        @db.Text
   failedReason         String?        @db.Text
-  registeredDomains    Json?          @db.Json // Array of RegisteredDomain
-  stripeChargeMetadata Json?          @db.Json // Stripe charge metadata
+  registeredDomains    Json? // Array of RegisteredDomain
+  stripeChargeMetadata Json? // Stripe charge metadata
   failedAttempts       Int            @default(0) // number of failed attempts to charge the invoice
   createdAt            DateTime       @default(now())
   paidAt               DateTime?

@@ -1,13 +1,20 @@
-import { conn } from "./connection";
+import { prisma } from "@/lib/prisma";
 import { EdgeLinkProps } from "./types";
 
-export const getShortLinkViaEdge = async (shortLink: string) => {
-  const { rows } =
-    (await conn.execute("SELECT * FROM Link WHERE shortLink = ?", [
-      shortLink,
-    ])) || {};
+export const getShortLinkViaEdge = async (
+  shortLink: string,
+): Promise<EdgeLinkProps | null> => {
+  const link = await prisma.link.findUnique({
+    where: { shortLink },
+  });
 
-  return rows && Array.isArray(rows) && rows.length > 0
-    ? (rows[0] as EdgeLinkProps)
-    : null;
+  if (!link) return null;
+
+  return {
+    ...link,
+    title: link.title ?? "",
+    description: link.description ?? "",
+    image: link.image ?? "",
+    video: link.video ?? "",
+  };
 };

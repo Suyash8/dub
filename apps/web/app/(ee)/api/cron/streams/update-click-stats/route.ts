@@ -1,5 +1,5 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { conn } from "@/lib/planetscale";
+import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash/redis";
 import { RedisStreamEntry } from "@/lib/upstash/redis-streams/client";
 import {
@@ -167,15 +167,9 @@ const processClickStatsStreamBatch = () =>
         linkUpdates,
         async (update) => {
           try {
-            const lastClickedAt = new Date(update.lastClicked)
-              .toISOString()
-              .slice(0, 19)
-              .replace("T", " ");
+            const lastClickedAt = new Date(update.lastClicked);
 
-            await conn.execute(
-              "UPDATE Link SET clicks = clicks + ?, lastClicked = GREATEST(COALESCE(lastClicked, ?), ?) WHERE id = ?",
-              [update.clicks, lastClickedAt, lastClickedAt, update.linkId],
-            );
+            await prisma.$executeRaw`UPDATE "Link" SET clicks = clicks + ${update.clicks}, "lastClicked" = GREATEST(COALESCE("lastClicked", ${lastClickedAt}), ${lastClickedAt}) WHERE id = ${update.linkId}`;
             processedEntryIds.push(...update.entryIds);
             return { success: true };
           } catch (error) {
@@ -193,10 +187,13 @@ const processClickStatsStreamBatch = () =>
         workspaceUpdates,
         async (update) => {
           try {
-            await conn.execute(
-              "UPDATE Project p SET p.usage = p.usage + ?, p.totalClicks = p.totalClicks + ? WHERE id = ?",
-              [update.clicks, update.clicks, update.workspaceId],
-            );
+            await prisma.project.update({
+              where: { id: update.workspaceId },
+              data: {
+                usage: { increment: update.clicks },
+                totalClicks: { increment: update.clicks },
+              },
+            });
             return { success: true };
           } catch (error) {
             console.error(

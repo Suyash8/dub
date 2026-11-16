@@ -4,21 +4,25 @@ export interface EdgeLinkProps {
   key: string;
   url: string;
   shortLink: string;
-  proxy: number;
+  proxy: boolean;
   title: string;
   description: string;
   image: string;
   video: string;
-  rewrite: number;
+  rewrite: boolean;
   password: string | null;
-  expiresAt: string | null;
+  expiresAt: Date | null;
+  disabledAt: Date | null;
+  doIndex: boolean;
   ios: string | null;
   android: string | null;
-  geo: object | null;
-  projectId: string;
-  publicStats: number;
+  geo: unknown;
+  testVariants: unknown;
+  testCompletedAt: Date | null;
+  projectId: string | null;
+  publicStats: boolean;
   expiredUrl: string | null;
-  createdAt: string;
+  createdAt: Date;
   trackConversion: boolean;
 }
 
@@ -26,14 +30,14 @@ export interface EdgeDomainProps {
   id: string;
   slug: string;
   logo: string | null;
-  verified: number;
-  placeholder: string;
+  verified: boolean;
+  placeholder: string | null;
   expiredUrl: string | null;
   notFoundUrl: string | null;
-  primary: number;
-  archived: number;
-  projectId: string;
-  lastChecked: string;
-  createdAt: string;
-  updatedAt: string;
+  primary: boolean;
+  archived: boolean;
+  projectId: string | null;
+  lastChecked: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }

@@ -140,7 +140,8 @@ module.exports = withPlausibleProxy({
         missing: [
           {
             type: "host",
-            value: ".*(\\.dub\\.co|localhost)",
+            value:
+              ".*(\\.dub\\.co|links\\.bysuyash\\.xyz|\\.vercel\\.app|localhost)",
           },
         ],
         destination: "/",

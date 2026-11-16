@@ -38,16 +38,12 @@ This patches `packages/utils/src/constants/main.ts` (routing domains) and
 Create these in any order; copy each value as you go — you will paste them
 into Vercel in step 4.
 
-### 1a. MySQL database (required)
-PlanetScale no longer has a free tier, so use one of:
-- **Aiven** (free "Free-3" MySQL plan): https://aiven.io/ → create MySQL
-  service → copy the **Service URI** (looks like
-  `mysql://avnadmin:PASSWORD@mysql-xxx.a.aivencloud.com:3306/defaultdb?ssl-mode=REQUIRED`).
-- **Railway** (~$5/mo, most reliable): create MySQL → copy
-  `MYSQL_URL` → add `?ssl_accept_rsa_cert=true` is NOT needed; just the plain
-  connection string.
+### 1a. PostgreSQL database — Neon via Vercel Storage (required, free tier)
+This self-host fork is converted from MySQL/PlanetScale to **PostgreSQL** so you can use Vercel's free Neon Postgres storage:
+- In your Vercel project → **Storage** → **Create Database** → **Neon (Serverless Postgres)** (Free tier, 0.5 GB storage, no credit card required), OR create a free database at https://neon.tech.
+- Copy the Postgres connection string (looks like `postgresql://neondb_owner:PASSWORD@ep-xxx.aws.neon.tech/neondb?sslmode=require`).
 
-The value goes into **`DATABASE_URL`**.
+The value goes into **`DATABASE_URL`** (if Vercel Storage adds `POSTGRES_PRISMA_URL` / `DATABASE_URL` automatically, verify `DATABASE_URL` is set for Production).
 
 ### 1b. Upstash Redis (required — link caching/redirects)
 https://upstash.com → create a **Redis** database (any region, Global works) →
@@ -134,7 +130,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"  # r
 | `NEXTAUTH_SECRET` | random base64 (command above) |
 | `ENCRYPTION_KEY` | random base64 (command above) |
 | `NEXTAUTH_URL` | `https://app.yourdomain.com` |
-| `DATABASE_URL` | MySQL URI from 1a |
+| `DATABASE_URL` | PostgreSQL URI from 1a (Neon) |
 | `UPSTASH_REDIS_REST_URL` | from 1b |
 | `UPSTASH_REDIS_REST_TOKEN` | from 1b |
 | `QSTASH_TOKEN` | from 1c |
@@ -154,8 +150,8 @@ Prisma push first, see 5).
 
 ```bash
 pnpm install
-DATABASE_URL="<your mysql url>" pnpm -F web exec prisma generate --schema=prisma/schema
-DATABASE_URL="<your mysql url>" pnpm -F web exec prisma db push --schema=prisma/schema
+DATABASE_URL="<your neon postgres url>" pnpm -F web exec prisma generate --schema=prisma/schema
+DATABASE_URL="<your neon postgres url>" pnpm -F web exec prisma db push --schema=prisma/schema
 ```
 
 (Requires Node 20+ and pnpm: `npm i -g pnpm`.)
@@ -185,8 +181,8 @@ DATABASE_URL="<your mysql url>" pnpm -F web exec prisma db push --schema=prisma/
   `RESEND_API_KEY` wrong.
 - **Redirects 404** → short domain not added in the dashboard (6.3) or
   `go.example.com` placeholder still in `packages/utils/src/constants/main.ts`.
-- **500 on /api routes** → `DATABASE_URL` unreachable (Aiven requires
-  `?ssl-mode=REQUIRED`), Redis/QStash keys missing.
+- **500 on /api routes** → `DATABASE_URL` unreachable (Neon requires
+  `?sslmode=require`), Redis/QStash keys missing.
 - **No analytics recorded** → `TINYBIRD_API_KEY`/`TINYBIRD_API_URL` wrong, or
   Tinybird datasources not deployed (step 1d).
 - **Sync PR shows conflicts** → resolve per the PR body instructions; your

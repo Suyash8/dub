@@ -252,8 +252,10 @@ const truncate = async () => {
     const tableName = tables[i];
     try {
       process.stdout.write(`\r[${i + 1}/${total}] Truncating ${tableName}...`);
-      // Use TRUNCATE for each table separately (MySQL/PlanetScale syntax)
-      await prisma.$executeRawUnsafe(`TRUNCATE TABLE \`${tableName}\`;`);
+      // Use TRUNCATE for each table separately (PostgreSQL syntax)
+      await prisma.$executeRawUnsafe(
+        `TRUNCATE TABLE "${tableName}" RESTART IDENTITY CASCADE;`,
+      );
     } catch (error: any) {
       errors.push(
         `${tableName}: ${error.message || error.code || "Unknown error"}`,

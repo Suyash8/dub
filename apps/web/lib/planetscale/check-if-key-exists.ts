@@ -1,9 +1,9 @@
+import { prisma } from "@/lib/prisma";
 import { punyEncode, safeDecodeURIComponent } from "@dub/utils";
 import {
   encodeKey,
   isCaseSensitiveDomain,
 } from "../api/links/case-sensitivity";
-import { conn } from "./connection";
 
 export const checkIfKeyExists = async ({
   domain,
@@ -17,14 +17,17 @@ export const checkIfKeyExists = async ({
     ? // for case sensitive domains, we need to encode the key
       encodeKey(key)
     : // for non-case sensitive domains, we need to make sure that the key is always URI-decoded + punycode-encoded
-      // (cause that's how we store it in MySQL)
       punyEncode(safeDecodeURIComponent(key));
 
-  const { rows } =
-    (await conn.execute(
-      "SELECT 1 FROM Link WHERE domain = ? AND `key` = ? LIMIT 1",
-      [domain, keyToQuery],
-    )) || {};
+  const link = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain,
+        key: keyToQuery,
+      },
+    },
+    select: { id: true },
+  });
 
-  return rows && Array.isArray(rows) && rows.length > 0;
+  return Boolean(link);
 };

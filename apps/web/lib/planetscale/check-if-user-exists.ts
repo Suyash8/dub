@@ -1,9 +1,10 @@
-import { conn } from "./connection";
+import { prisma } from "@/lib/prisma";
 
 export const checkIfUserExists = async (userId: string) => {
-  const { rows } =
-    (await conn.execute("SELECT 1 FROM User WHERE id = ? LIMIT 1", [userId])) ||
-    {};
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
 
-  return rows && Array.isArray(rows) && rows.length > 0;
+  return Boolean(user);
 };

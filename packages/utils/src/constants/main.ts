@@ -39,8 +39,12 @@ export const APP_DOMAIN_WITH_NGROK =
 
 export const isAppHostname = (hostname: string) => {
   if (process.env.NEXT_PUBLIC_VERCEL_ENV === "preview") {
-    // pattern of our preview URLs are always "dub-<random-string>.dub.co"
-    return hostname.startsWith("dub-") && hostname.endsWith(".dub.co");
+    return (
+      hostname === "links.bysuyash.xyz" ||
+      hostname === process.env.NEXT_PUBLIC_VERCEL_URL ||
+      hostname.endsWith(".vercel.app") ||
+      (hostname.startsWith("dub-") && hostname.endsWith(".dub.co"))
+    );
   }
   return new Set(["links.bysuyash.xyz", "localhost:8888", "localhost"]).has(
     hostname,

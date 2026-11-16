@@ -10,8 +10,6 @@ import { DUB_QR_LOGO, getSearchParams, isDubDomain } from "@dub/utils";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
-export const runtime = "edge";
-
 const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -95,7 +93,7 @@ const getQRCodeLogo = async ({
   const shortLink = await getShortLinkViaEdge(url.split("?")[0]);
 
   // Not a Dub link
-  if (!shortLink) {
+  if (!shortLink || !shortLink.projectId) {
     return DUB_QR_LOGO;
   }
 

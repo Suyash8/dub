@@ -1,4 +1,3 @@
-import { sanitizeFullTextSearch } from "@/lib/prisma";
 import { getCustomersCountQuerySchema } from "@/lib/zod/schemas/customers";
 import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
@@ -28,10 +27,11 @@ export function buildCustomerSearchWhere({
 
   if (search.includes("@")) return { email: search };
 
-  const q = sanitizeFullTextSearch(search);
   return {
-    email: { search: q },
-    name: { search: q },
+    OR: [
+      { email: { contains: search, mode: "insensitive" } },
+      { name: { contains: search, mode: "insensitive" } },
+    ],
   };
 }
 
