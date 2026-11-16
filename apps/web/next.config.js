@@ -43,6 +43,9 @@ module.exports = withPlausibleProxy({
     ],
   },
   experimental: {
+    webpackBuildWorker: true,
+    cpus: 2,
+    memoryBasedWorkersCount: true,
     optimizePackageImports: [
       "@dub/email",
       "@dub/ui",
