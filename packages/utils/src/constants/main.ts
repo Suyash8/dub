@@ -2,11 +2,11 @@
 // SELF-HOST CONFIGURATION — edit these two lines for your setup:
 //   APP_DOMAIN:  where the Dub dashboard (UI) is served
 //   SHORT_DOMAIN: where your short links live
-// They must be different hostnames (e.g. app.example.com and
-// go.example.com). Run ./set-domains.sh to do this
+// They must be different hostnames (e.g. links.bysuyash.xyz and
+// link.bysuyash.xyz). Run ./set-domains.sh to do this
 // automatically across the whole repo.
 // ============================================================
-export const SHORT_DOMAIN = "go.example.com";
+export const SHORT_DOMAIN = "link.bysuyash.xyz";
 
 export const API_HOSTNAMES = new Set([
   "api.dub.co",
@@ -25,14 +25,14 @@ export const API_DOMAIN =
 
 export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.example.com"
+    ? "https://links.bysuyash.xyz"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL || "app.example.com"}`
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL || "links.bysuyash.xyz"}`
       : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? "https://app.example.com"
+    ? "https://links.bysuyash.xyz"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
       ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL || "preview.dub.co"}`
       : process.env.NEXT_PUBLIC_NGROK_URL || "http://localhost:8888";
@@ -42,7 +42,7 @@ export const isAppHostname = (hostname: string) => {
     // pattern of our preview URLs are always "dub-<random-string>.dub.co"
     return hostname.startsWith("dub-") && hostname.endsWith(".dub.co");
   }
-  return new Set(["app.example.com", "localhost:8888", "localhost"]).has(
+  return new Set(["links.bysuyash.xyz", "localhost:8888", "localhost"]).has(
     hostname,
   );
 };
