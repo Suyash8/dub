@@ -11,7 +11,6 @@ import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
-import { isGenericEmail } from "../email/is-generic-email";
 import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
@@ -41,9 +40,9 @@ export const sendOtpAction = actionClient
 
     const emailDomainBlocked = isDisposable || matchesBlockedTerms;
 
-    if (isGenericEmail(email) || emailDomainBlocked) {
+    if (emailDomainBlocked) {
       throw new Error(
-        "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
+        "Invalid email address – disposable email domains are not allowed.",
       );
     }
 

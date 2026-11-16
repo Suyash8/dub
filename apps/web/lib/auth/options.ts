@@ -98,7 +98,7 @@ export const authOptions: NextAuthOptions = {
           return;
         }
 
-        sendEmail({
+        await sendEmail({
           to: identifier,
           subject: "Your Dub Login Link",
           react: LoginLink({ url, email: identifier }),
