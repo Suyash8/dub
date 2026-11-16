@@ -1,0 +1,69 @@
+name: Sync with upstream (dubinc/dub)
+
+# Runs weekly and on demand: fetches new commits from dubinc/dub,
+# merges them into your self-host branch, and opens a PR with the
+# result. If there are conflicts, the PR lets you resolve them on
+# GitHub instead of doing it locally.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # every Monday 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: self-host
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream and fetch
+        run: |
+          git remote add upstream https://github.com/dubinc/dub.git || true
+          git fetch upstream main --tags
+
+      - name: Merge upstream/main into self-host
+        id: merge
+        continue-on-error: true
+        run: |
+          git merge upstream/main --no-edit -m "Merge upstream dubinc/dub@$(git rev-parse --short upstream/main)"
+          echo "success=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push (clean merge)
+        if: steps.merge.outputs.success == 'true'
+        run: git push origin self-host
+
+      - name: Push branch + open PR (conflicts need manual resolution)
+        if: steps.merge.outputs.success != 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: self-host
+          branch: sync-upstream-conflicts
+          title: "Upstream sync has conflicts — resolve manually"
+          body: |
+            Merging dubinc/dub main into `self-host` produced conflicts.
+
+            Resolve locally:
+            ```bash
+            git fetch origin
+            git checkout sync-upstream-conflicts
+            # fix conflicts, then:
+            git add -A && git commit -m "Merge upstream"
+            git push origin sync-upstream-conflicts
+            ```
+            The PR will update automatically once pushed.
+          delete-branch: false
